@@ -5,39 +5,21 @@
   <div>&nbsp;</div>
 
   <div align="center">
-    <b><font size="5">ABBSPO: Adaptive Bounding Box Scaling and Symmetric Prior Based Orientation Prediction for Detecting Aerial Image Objects</font></b>
-    <br/>
-    <b><font size="4">CVPR 2025</font></b>
+    <b><font size="5">[CVPR 2025] ABBSPO: Adaptive Bounding Box Scaling and Symmetric Prior Based Orientation Prediction for Detecting Aerial Image Objects</font></b>
   </div>
 
   <div>&nbsp;</div>
 
-  <!-- Optional badges (add later)
-  [![arXiv](https://img.shields.io/badge/arXiv-2501.01234-b31b1b.svg)](https://arxiv.org)
-  [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-  -->
-
-  [📄 Paper](<PAPER_LINK_HERE>) |
+  [📄 Paper](https://openaccess.thecvf.com/content/CVPR2025/papers/Lee_ABBSPO_Adaptive_Bounding_Box_Scaling_and_Symmetric_Prior_based_Orientation_CVPR_2025_paper.pdf) |
   [🌐 Project Page](https://kaist-viclab.github.io/ABBSPO_site/) |
-  [📦 Checkpoints (TBA)](#-pretrained-models) |
-  [🤝 Issues](https://github.com/KAIST-VICLab/ABBSPO/issues)
-
-</div>
-
----
-
-<div align="center">
-
-**Woojin Lee\***, **Hyugjae Chang\***, Jaeho Moon, Jaehyup Lee†, Munchurl Kim†  
-KAIST, KNU  
-\*Co-first authors &nbsp;&nbsp; †Co-corresponding authors  
+  [📦 Checkpoints (TBA)](#-pretrained-models)
 
 </div>
 
 ---
 
 <p align="center">
-  <img src="assets/abbspo_teaser.png" width="800"/>
+  <img src="assets/figure2.png" width="1000"/>
 </p>
 
 <p align="center">
