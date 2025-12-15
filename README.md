@@ -64,27 +64,43 @@ minimum circumscribed rectangle operations for rotated box generation.
 
 ## ⚙️ Environment Setup
 
-### Option A) Reproduce our environment (recommended)
-```bash
-git clone https://github.com/KAIST-VICLab/ABBSPO.git
-cd ABBSPO
-
-conda env create -f abbspo.yaml
-conda activate abbspo
-
-pip install -v -e .
-```
-
-### Option B) Install using requirements.txt
+### Install Environment (Recommended)
 ```bash
 git clone https://github.com/KAIST-VICLab/ABBSPO.git
 cd ABBSPO
 
 conda create -n abbspo python=3.8
 conda activate abbspo
+```
 
+### Step 1. Install PyTorch (CUDA 11.7)
+```bash
+pip install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+```
+
+### Step 2. Install MMCV with CUDA extensions ⚠️ (IMPORTANT)
+```bash
+pip install mmcv==2.0.0rc4 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13/index.html
+```
+⚠️ Important Note
+Installing mmcv without the OpenMMLab wheel URL will result in a CPU-only build
+and cause runtime errors such as:
+```bash
+ModuleNotFoundError: No module named 'mmcv._ext'
+```
+
+### Step 3. Install remaining dependencies
+```bash
 pip install -r requirements.txt
 pip install -v -e .
+```
+
+### (Optional) Installation Sanity Check
+```bash
+python - <<EOF
+from mmcv.ops import batched_nms
+print("MMCV CUDA ops are correctly installed.")
+EOF
 ```
 
 ## 📁 Data Preparation
