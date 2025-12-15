@@ -78,11 +78,11 @@ conda activate abbspo
 pip install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 ```
 
-### Step 2. Install MMCV with CUDA extensions ⚠️ (IMPORTANT)
+### Step 2. Install MMCV with CUDA extensions (IMPORTANT)
 ```bash
 pip install mmcv==2.0.0rc4 -f https://download.openmmlab.com/mmcv/dist/cu117/torch1.13/index.html
 ```
-⚠️ Important Note
+⚠️ Important Note: 
 Installing mmcv without the OpenMMLab wheel URL will result in a CPU-only build
 and cause runtime errors such as:
 ```bash
