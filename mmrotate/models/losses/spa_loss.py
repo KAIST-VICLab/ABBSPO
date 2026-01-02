@@ -198,7 +198,7 @@ class SPALoss(nn.Module):
         y = pred_bboxes[:, 1].detach()
         w_box = pred_bboxes[:, 2].detach()
         h_box = pred_bboxes[:, 3].detach()
-        theta = pred_bboxes[:, 4]  # 각도는 gradient가 필요하므로 detach X
+        theta = pred_bboxes[:, 4]  
 
         # 4) Create box-local grid
         res = self.grid

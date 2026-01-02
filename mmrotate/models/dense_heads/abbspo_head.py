@@ -506,11 +506,12 @@ class ABBSPOHead(RotatedFCOSHead):
 
             # SPA Loss + proposal sampling
             num_levels = len(cls_scores)
-            num_imgs_ori = batch_inputs.shape[0]
+            num_imgs_ori = batch_inputs.shape[0]  # should be views-merged batch, ori count
 
             inds_level_interval = np.cumsum(num_proposals_each_level)
             num_inds = num_imgs_ori * inds_level_interval[-1]
 
+            # reshape only "ori" part
             flatten_cls_scores_ori = flatten_cls_scores[:num_inds].reshape(
                 num_imgs_ori, -1, self.num_classes)
             flatten_bbox_preds_ori = flatten_bbox_preds[:num_inds].reshape(
@@ -528,21 +529,27 @@ class ABBSPOHead(RotatedFCOSHead):
             flatten_bid_targets_ori = flatten_bid_targets[:num_inds].reshape(
                 num_imgs_ori, -1)
 
+            # positive indices per image
             pos_inds_ori = []
+            pos_cnts_ori = []
             for i in range(num_imgs_ori):
                 pos_inds_1 = ((flatten_labels_ori[i] >= 0) &
-                              (flatten_labels_ori[i] <
-                               bg_class_ind)).nonzero().reshape(-1)
+                              (flatten_labels_ori[i] < bg_class_ind)).nonzero().reshape(-1)
                 pos_inds_ori.append(pos_inds_1)
+                pos_cnts_ori.append(pos_inds_1.numel())
 
-            points_per_level_ori = [
-                points.size(0) for points in all_level_points_ori
-            ]
+            num_pos_ori_total = torch.tensor(
+                float(sum(pos_cnts_ori)),
+                dtype=torch.float,
+                device=bbox_preds[0].device)
+            num_pos_ori_global = max(reduce_mean(num_pos_ori_total), 1.0)
+
+            # build stride-per-prediction vector
+            points_per_level_ori = [points.size(0) for points in all_level_points_ori]
             strides_per_level_ori = self.strides
 
             strides_per_prediction_ori = []
-            for stride, num_points in zip(strides_per_level_ori,
-                                          points_per_level_ori):
+            for stride, num_points in zip(strides_per_level_ori, points_per_level_ori):
                 strides_per_prediction_ori.extend([stride] * num_points)
             strides_per_prediction_ori = torch.tensor(
                 strides_per_prediction_ori,
@@ -554,22 +561,19 @@ class ABBSPOHead(RotatedFCOSHead):
 
             for i in range(num_imgs_ori):
                 pos_inds_1 = pos_inds_ori[i]
-                if len(pos_inds_1) == 0:
+
+                # keep list alignment for SPALoss
+                if pos_inds_1.numel() == 0:
                     pos_decoded_bbox_preds_ori_list.append(None)
                     pos_labels_ori_list.append(None)
                     continue
-
-                num_pos_ori = torch.tensor(
-                    len(pos_inds_1),
-                    dtype=torch.float,
-                    device=bbox_preds[0].device)
-                num_pos_ori = max(reduce_mean(num_pos_ori), 1.0)
 
                 pos_cls_scores_ori = flatten_cls_scores_ori[i][pos_inds_1]
                 pos_bbox_preds_ori = flatten_bbox_preds_ori[i][pos_inds_1]
                 pos_labels_ori = flatten_labels_ori[i][pos_inds_1]
                 pos_angle_preds_ori = flatten_angle_preds_ori[i][pos_inds_1]
                 pos_points_ori = flatten_points_ori[i][pos_inds_1]
+
                 pos_decoded_angle_preds_ori = self.angle_coder.decode(
                     pos_angle_preds_ori, keepdim=True)
                 pos_bbox_preds_ori = torch.cat(
@@ -579,25 +583,25 @@ class ABBSPOHead(RotatedFCOSHead):
 
                 pos_bbox_targets_ori = flatten_bbox_targets_ori[i][pos_inds_1]
                 pos_angle_targets_ori = flatten_angle_targets_ori[i][pos_inds_1]
-                pos_centerness_targets_ori = self.centerness_target(
-                    pos_bbox_targets_ori)
+                pos_centerness_targets_ori = self.centerness_target(pos_bbox_targets_ori)
+
                 pos_bbox_targets_ori = torch.cat(
                     [pos_bbox_targets_ori, pos_angle_targets_ori], dim=-1)
                 pos_decoded_bbox_targets_ori = self.bbox_coder.decode(
                     pos_points_ori, pos_bbox_targets_ori)
+
                 pos_bid_targets_ori = flatten_bid_targets_ori[i][pos_inds_1]
 
                 with torch.no_grad():
-                    points_quality_assessment, _, _ = \
-                        self.points_quality_assessment(
-                            pos_cls_scores_ori,
-                            pos_decoded_bbox_preds_ori,
-                            pos_labels_ori,
-                            pos_decoded_bbox_targets_ori,
-                            pos_centerness_targets_ori,
-                            centerness_denorm,
-                            num_pos_ori,
-                            pos_inds_ori[i])
+                    points_quality_assessment, _, _ = self.points_quality_assessment(
+                        pos_cls_scores_ori,
+                        pos_decoded_bbox_preds_ori,
+                        pos_labels_ori,
+                        pos_decoded_bbox_targets_ori,
+                        pos_centerness_targets_ori,
+                        centerness_denorm,
+                        num_pos_ori_global,    
+                        pos_inds_ori[i])
 
                     labels_t, _ = self.point_samples_selection(
                         points_quality_assessment,
@@ -611,10 +615,17 @@ class ABBSPOHead(RotatedFCOSHead):
                 pos_inds_new = ((labels_t >= 0) &
                                 (labels_t < bg_class_ind)).nonzero().reshape(-1)
 
+                # if nothing selected, keep None to preserve alignment
+                if pos_inds_new.numel() == 0:
+                    pos_decoded_bbox_preds_ori_list.append(None)
+                    pos_labels_ori_list.append(None)
+                    continue
+
                 pos_bbox_preds_ori = flatten_bbox_preds_ori[i][pos_inds_new]
                 pos_labels_ori = flatten_labels_ori[i][pos_inds_new]
                 pos_angle_preds_ori = flatten_angle_preds_ori[i][pos_inds_new]
                 pos_points_ori = flatten_points_ori[i][pos_inds_new]
+
                 pos_decoded_angle_preds_ori = self.angle_coder.decode(
                     pos_angle_preds_ori, keepdim=True)
                 pos_bbox_preds_ori = torch.cat(
@@ -626,8 +637,7 @@ class ABBSPOHead(RotatedFCOSHead):
                 pos_decoded_bbox_preds_ori[:, 2] *= stride_per_pos_ori
                 pos_decoded_bbox_preds_ori[:, 3] *= stride_per_pos_ori
 
-                pos_decoded_bbox_preds_ori_list.append(
-                    pos_decoded_bbox_preds_ori)
+                pos_decoded_bbox_preds_ori_list.append(pos_decoded_bbox_preds_ori)
                 pos_labels_ori_list.append(pos_labels_ori)
 
             loss_spa = self.loss_spa(
