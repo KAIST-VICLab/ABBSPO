@@ -3,7 +3,7 @@
 </h2>
 
 <div>
-    <a href="https://www.viclab.kaist.ac.kr/" target="_blank">Woojin Lee</b></a><sup>1*</sup>&nbsp;&nbsp;&nbsp;
+    <a href="https://woojin52.github.io/" target="_blank">Woojin Lee</b></a><sup>1*</sup>&nbsp;&nbsp;&nbsp;
     <a href="https://www.viclab.kaist.ac.kr/" target="_blank">Hyugjae Chang</b></a><sup>1*</sup>&nbsp;&nbsp;&nbsp;
     <a href="https://sites.google.com/view/jaehomoon/" target="_blank">Jaeho Moon</a><sup>1</sup>&nbsp;&nbsp;&nbsp;
     <a href="https://sites.google.com/view/knuairlab/" target="_blank">Jaehyup Lee</a><sup>2†</sup>&nbsp;&nbsp;&nbsp;
