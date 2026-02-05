@@ -149,7 +149,7 @@ work_dirs/*
 *.pth
 *.ckpt
 *.log
-*.json
+
 
 # Visualized detection outputs
 visual_results/
@@ -178,4 +178,8 @@ COCO*/
 images/
 annotations/
 
+# Dataset root folder in repo
+/data/
 
+# VSCode
+.vscode/
